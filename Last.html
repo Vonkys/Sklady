@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Vyhledávač skladu</title>
+</head>
+<body>
+  <h1>Vyhledávač skladu</h1>
+
+  <input type="text" id="search" placeholder="Zadej číslo nebo název nářadí">
+  <button onclick="findTool()">Hledat</button>
+  <p id="result"></p>
+
+  <hr>
+
+  <h2>Přidat nové nářadí</h2>
+  <input type="text" id="cislo" placeholder="Číslo">
+  <input type="text" id="nazev" placeholder="Název">
+  <input type="text" id="regal" placeholder="Regál">
+  <input type="text" id="koje" placeholder="Kóje">
+  <button onclick="addTool()">Přidat nářadí</button>
+  <p id="addResult"></p>
+
+  <script>
+    let sklad = {};
+
+    if (localStorage.getItem("skladData")) {
+      sklad = JSON.parse(localStorage.getItem("skladData"));
+    } else {
+      sklad = {
+        "444 lis": "Regál 4, kóje 5",
+        "444 testr": "Regál 5, kóje 3",
+        "445 kladivo": "Regál 3, kóje 4"
+      };
+      localStorage.setItem("skladData", JSON.stringify(sklad));
+    }
+
+    function findTool() {
+      const hledane = document.getElementById("search").value.toLowerCase();
+      let vysledky = [];
+
+      for (const [nazev, umisteni] of Object.entries(sklad)) {
+        if (nazev.toLowerCase().includes(hledane)) {
+          vysledky.push(
+            `<div>${nazev} → ${umisteni} 
+            <button onclick="deleteTool('${nazev}')">Smazat</button></div>`
+          );
+        }
+      }
+
+      document.getElementById("result").innerHTML = vysledky.length > 0
+        ? vysledky.join("<br>")
+        : "Nářadí nebylo nalezeno.";
+    }
+
+    function addTool() {
+      const cislo = document.getElementById("cislo").value.trim();
+      const nazev = document.getElementById("nazev").value.trim();
+      const regal = document.getElementById("regal").value.trim();
+      const koje = document.getElementById("koje").value.trim();
+
+      if (cislo && nazev && regal && koje) {
+        const klic = `${cislo} ${nazev}`;
+        sklad[klic] = `Regál ${regal}, kóje ${koje}`;
+        localStorage.setItem("skladData", JSON.stringify(sklad));
+
+        document.getElementById("addResult").innerText = `Přidáno: ${klic} → Regál ${regal}, kóje ${koje}`;
+        document.getElementById("cislo").value = "";
+        document.getElementById("nazev").value = "";
+        document.getElementById("regal").value = "";
+        document.getElementById("koje").value = "";
+      } else {
+        document.getElementById("addResult").innerText = "Vyplň všechny údaje!";
+      }
+    }
+
+    function deleteTool(klic) {
+      if (confirm(`Opravdu chceš smazat ${klic}?`)) {
+        delete sklad[klic];
+        localStorage.setItem("skladData", JSON.stringify(sklad));
+        findTool(); // Obnovit výsledky
+      }
+    }
+  </script>
+</body>
+</html>
